@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { toInputDate } from "../lib/dates";
@@ -6,6 +6,54 @@ import type { CalendarEvent, Contact, MeetingPlatform } from "../types/database"
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 import "./Calendar.css";
+
+async function syncContactFollowUps(userId: string, contacts: Contact[]): Promise<boolean> {
+  const { data: existing } = await supabase
+    .from("events")
+    .select("id, contact_id, event_date")
+    .eq("user_id", userId)
+    .eq("event_type", "contact_follow_up");
+
+  const byContact = new Map<string, { id: string; event_date: string }>();
+  for (const ev of existing ?? []) {
+    if (ev.contact_id) byContact.set(ev.contact_id, ev);
+  }
+
+  const toInsert: Record<string, unknown>[] = [];
+  const toUpdate: { id: string; event_date: string }[] = [];
+
+  for (const c of contacts) {
+    if (!c.follow_up_date) continue;
+    const ev = byContact.get(c.id);
+    if (!ev) {
+      toInsert.push({
+        user_id: userId,
+        contact_id: c.id,
+        title: `Follow up: ${c.name}`,
+        event_date: c.follow_up_date,
+        start_time: null,
+        end_time: null,
+        notes: "",
+        meeting_link: null,
+        meeting_platform: null,
+        event_type: "contact_follow_up",
+      });
+    } else if (ev.event_date !== c.follow_up_date) {
+      toUpdate.push({ id: ev.id, event_date: c.follow_up_date });
+    }
+  }
+
+  if (toInsert.length === 0 && toUpdate.length === 0) return false;
+
+  await Promise.all([
+    toInsert.length ? supabase.from("events").insert(toInsert) : Promise.resolve(),
+    ...toUpdate.map((u) =>
+      supabase.from("events").update({ event_date: u.event_date }).eq("id", u.id)
+    ),
+  ]);
+
+  return true;
+}
 
 type ViewMode = "month" | "week";
 
@@ -116,6 +164,7 @@ function VideoIcon({ platform }: { platform: MeetingPlatform }) {
 
 export function Calendar() {
   const { user } = useAuth();
+  const hasSynced = useRef(false);
   const [view, setView] = useState<ViewMode>("month");
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
 
@@ -173,6 +222,28 @@ export function Calendar() {
 
     if (contactsRes.error) setError(contactsRes.error.message);
     else setContacts((contactsRes.data as Contact[]) ?? []);
+
+    const loadedContacts = (contactsRes.data as Contact[]) ?? [];
+
+    // On first mount, sync follow-up events for all contacts with follow_up_date
+    if (!hasSynced.current) {
+      hasSynced.current = true;
+      const didSync = await syncContactFollowUps(user.id, loadedContacts);
+      if (didSync) {
+        const fresh = await supabase
+          .from("events")
+          .select("*")
+          .eq("user_id", user.id)
+          .gte("event_date", start)
+          .lte("event_date", end)
+          .order("event_date", { ascending: true })
+          .order("start_time", { ascending: true, nullsFirst: true });
+        if (fresh.error) setError(fresh.error.message);
+        else setEvents((fresh.data as CalendarEvent[]) ?? []);
+        setLoading(false);
+        return;
+      }
+    }
 
     if (eventsRes.error) setError(eventsRes.error.message);
     else setEvents((eventsRes.data as CalendarEvent[]) ?? []);

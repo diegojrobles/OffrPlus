@@ -1,48 +1,112 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import "./Layout.css";
 
-function NavIcon({ name }: { name: "calendar" }) {
-  if (name === "calendar") {
-    return (
-      <svg
-        className="nav-icon"
-        viewBox="0 0 24 24"
-        width="16"
-        height="16"
-        fill="none"
-        aria-hidden
-      >
-        <path
-          d="M7 3v3M17 3v3M4 8h16M6 6h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
+type IconName =
+  | "grid"
+  | "columns"
+  | "calendar"
+  | "folder"
+  | "user"
+  | "briefcase"
+  | "document"
+  | "chevron-down"
+  | "chevron-up";
+
+function NavIcon({ name }: { name: IconName }) {
+  const common = {
+    className: "nav-icon",
+    viewBox: "0 0 24 24",
+    width: "16",
+    height: "16",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+
+  switch (name) {
+    case "grid":
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      );
+    case "columns":
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="4" height="18" rx="1" />
+          <rect x="10" y="3" width="4" height="12" rx="1" />
+          <rect x="17" y="3" width="4" height="16" rx="1" />
+        </svg>
+      );
+    case "calendar":
+      return (
+        <svg {...common}>
+          <path d="M7 3v3M17 3v3M4 8h16M6 6h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" />
+        </svg>
+      );
+    case "folder":
+      return (
+        <svg {...common}>
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+      );
+    case "user":
+      return (
+        <svg {...common}>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      );
+    case "briefcase":
+      return (
+        <svg {...common}>
+          <rect x="2" y="7" width="20" height="14" rx="2" />
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+        </svg>
+      );
+    case "document":
+      return (
+        <svg {...common}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+      );
+    case "chevron-down":
+      return (
+        <svg {...common}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      );
+    case "chevron-up":
+      return (
+        <svg {...common}>
+          <polyline points="18 15 12 9 6 15" />
+        </svg>
+      );
+    default:
+      return null;
   }
-  return null;
 }
-
-type NavItem = {
-  to: string;
-  label: string;
-  end: boolean;
-  icon?: "calendar";
-};
-
-const nav: NavItem[] = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/pipeline", label: "Pipeline", end: false },
-  { to: "/calendar", label: "Calendar", end: false, icon: "calendar" },
-  { to: "/contacts", label: "Contacts", end: false },
-  { to: "/applications", label: "Applications", end: false },
-  { to: "/resumes", label: "Resumes", end: false },
-];
 
 export function Layout() {
   const { user, signOut } = useAuth();
+  const { pathname } = useLocation();
+  const [myOffrExpanded, setMyOffrExpanded] = useState(true);
+
+  const myOffrActive = ["/contacts", "/applications", "/resumes"].some((p) =>
+    pathname.startsWith(p)
+  );
+
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `nav-link${isActive ? " nav-link-active" : ""}`;
 
   return (
     <div className="layout">
@@ -52,19 +116,48 @@ export function Layout() {
           <span className="brand-text">Offr+</span>
         </div>
         <nav className="sidebar-nav">
-          {nav.map(({ to, label, end, icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `nav-link${isActive ? " nav-link-active" : ""}`
-              }
+          <NavLink to="/" end className={navLinkClass}>
+            <NavIcon name="grid" />
+            Dashboard
+          </NavLink>
+          <NavLink to="/pipeline" className={navLinkClass}>
+            <NavIcon name="columns" />
+            Pipeline
+          </NavLink>
+          <NavLink to="/calendar" className={navLinkClass}>
+            <NavIcon name="calendar" />
+            Calendar
+          </NavLink>
+
+          <div className="nav-group">
+            <button
+              type="button"
+              className={`nav-group-toggle${myOffrActive ? " nav-group-toggle-active" : ""}`}
+              onClick={() => setMyOffrExpanded((v) => !v)}
+              aria-expanded={myOffrExpanded}
             >
-              {icon ? <NavIcon name={icon} /> : null}
-              {label}
-            </NavLink>
-          ))}
+              <NavIcon name="folder" />
+              <span className="nav-group-label">My Offr+</span>
+              <NavIcon name={myOffrExpanded ? "chevron-up" : "chevron-down"} />
+            </button>
+
+            {myOffrExpanded && (
+              <div className="nav-group-items">
+                <NavLink to="/contacts" className={navLinkClass}>
+                  <NavIcon name="user" />
+                  Contacts
+                </NavLink>
+                <NavLink to="/applications" className={navLinkClass}>
+                  <NavIcon name="briefcase" />
+                  Applications
+                </NavLink>
+                <NavLink to="/resumes" className={navLinkClass}>
+                  <NavIcon name="document" />
+                  Resumes
+                </NavLink>
+              </div>
+            )}
+          </div>
         </nav>
         <div className="sidebar-footer">
           <span className="user-email" title={user?.email ?? ""}>

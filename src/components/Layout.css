@@ -76,6 +76,58 @@
   color: var(--accent);
 }
 
+/* Collapsible group */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.nav-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.9rem;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: left;
+}
+
+.nav-group-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.nav-group-toggle-active {
+  color: var(--accent);
+}
+
+.nav-group-label {
+  flex: 1;
+  text-align: left;
+}
+
+.nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding-left: 0.65rem;
+  margin-top: 0.05rem;
+}
+
+.nav-group-items .nav-link {
+  font-size: 0.85rem;
+  padding: 0.45rem 0.75rem;
+}
+
+/* Footer */
 .sidebar-footer {
   padding: 1rem 1.25rem 0;
   border-top: 1px solid var(--border);
@@ -123,6 +175,16 @@
     flex: 1;
     justify-content: center;
     padding: 0;
+  }
+
+  .nav-group {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .nav-group-items {
+    flex-direction: row;
+    padding-left: 0;
   }
 
   .sidebar-footer {

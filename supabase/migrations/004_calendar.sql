@@ -121,3 +121,4 @@ create trigger contacts_follow_up_sync
   for each row
   execute function public.sync_contact_follow_up_event();
 
+
