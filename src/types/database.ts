@@ -11,6 +11,7 @@ export interface Contact {
   user_id: string;
   name: string;
   email: string;
+  phone: string;
   company: string;
   role: string;
   date_met: string | null;
@@ -28,10 +29,34 @@ export interface Application {
   role: string;
   status: ApplicationStatus;
   date_applied: string | null;
+  salary: string;
+  expected_reply_date: string | null;
+  location: string;
+  link: string;
+  custom_fields: Record<string, string>;
   notes: string;
   created_at: string;
   updated_at: string;
 }
+
+export type CustomFieldType = "text" | "number" | "date";
+
+export interface AppCustomField {
+  id: string;
+  user_id: string;
+  name: string;
+  field_type: CustomFieldType;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AppCustomFieldInsert = Omit<
+  AppCustomField,
+  "id" | "user_id" | "created_at" | "updated_at"
+>;
+
+export const CUSTOM_FIELD_TYPES: CustomFieldType[] = ["text", "number", "date"];
 
 export interface Resume {
   id: string;
@@ -40,6 +65,9 @@ export interface Resume {
   title: string;
   resume_text: string;
   notes: string;
+  file_path: string | null;
+  file_name: string | null;
+  file_size: number | null;
   created_at: string;
   updated_at: string;
 }

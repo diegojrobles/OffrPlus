@@ -4,6 +4,11 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.page-header > :first-child {
+  min-width: 0;
 }
 
 .page-header h1 {

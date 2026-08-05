@@ -22,23 +22,10 @@
   margin-bottom: 1rem;
 }
 
-.brand-mark {
-  width: 32px;
-  height: 32px;
+.sidebar-footer-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--accent);
-  color: var(--bg);
-  font-weight: 600;
-  font-size: 0.75rem;
-  border-radius: var(--radius);
-}
-
-.brand-text {
-  font-weight: 600;
-  font-size: 0.95rem;
-  letter-spacing: -0.02em;
+  gap: 0.4rem;
 }
 
 .sidebar-nav {
@@ -146,8 +133,17 @@
 
 .main {
   flex: 1;
+  /* Without this a flex child refuses to shrink below its content width,
+     which is what pushed the whole page sideways instead of letting the
+     table scroll on its own. */
+  min-width: 0;
   padding: 2rem 2.5rem;
-  overflow-x: auto;
+}
+
+@media (max-width: 1100px) {
+  .main {
+    padding: 1.5rem 1.25rem;
+  }
 }
 
 @media (max-width: 768px) {

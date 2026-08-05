@@ -1,0 +1,182 @@
+.landing {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.landing-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 0;
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.4rem;
+  font-size: 1rem;
+}
+
+/* ---------------- hero ---------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: center;
+  gap: 3rem;
+  padding: 4.5rem 0 5rem;
+}
+
+.hero-kicker {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.hero-title {
+  margin: 0;
+  font-size: clamp(2.3rem, 5.2vw, 3.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+/* The brand's own device: the trailing s in green, slightly lifted. */
+.greens-s {
+  color: var(--logo-green);
+  font-weight: 500;
+}
+
+.hero-sub {
+  margin: 1.5rem 0 2.25rem;
+  max-width: 46ch;
+  font-size: 1.06rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.hero-cta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.hero-art {
+  display: flex;
+  justify-content: center;
+  /* The mark inherits text color for its ink arcs. */
+  color: var(--text);
+}
+
+/* ---------------- features ---------------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  padding-bottom: 4rem;
+}
+
+.feature-card {
+  padding: 1.6rem 1.5rem;
+}
+
+.feature-verb {
+  margin: 0 0 0.7rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.feature-noun {
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.feature-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+/* ---------------- closer ---------------- */
+
+.closer {
+  text-align: center;
+  padding: 1rem 0 5rem;
+}
+
+.closer-rule {
+  width: 120px;
+  height: 1px;
+  margin: 0 auto 2rem;
+  background: var(--logo-green);
+  opacity: 0.6;
+}
+
+.closer-line {
+  margin: 0 auto 1.75rem;
+  max-width: 44ch;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+/* ---------------- footer ---------------- */
+
+.landing-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.5rem 0 2rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------------- narrow ---------------- */
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 3rem 0 3.5rem;
+  }
+
+  .hero-art {
+    order: -1;
+  }
+
+  .hero-art svg {
+    width: 200px;
+    height: 200px;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .landing {
+    padding: 0 1.25rem;
+  }
+
+  .landing-nav .btn-ghost {
+    display: none;
+  }
+}

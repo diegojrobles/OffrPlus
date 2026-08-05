@@ -56,10 +56,15 @@ export function Dashboard() {
     );
   }
 
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const firstName = user?.email?.split("@")[0] ?? "";
+
   return (
     <div>
       <PageHeader
-        title="Dashboard"
+        title={`${greeting}${firstName ? `, ${firstName}` : ""}`}
         subtitle="Your networking and recruiting at a glance"
       />
 

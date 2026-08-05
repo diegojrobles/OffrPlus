@@ -1,16 +1,22 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import { formatBytes, MAX_RESUME_BYTES } from "../lib/files";
 import type { Resume, ResumeInsert } from "../types/database";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
+
+const RESUME_BUCKET = "resumes";
 
 const emptyForm: ResumeInsert = {
   company: "",
   title: "",
   resume_text: "",
   notes: "",
+  file_path: null,
+  file_name: null,
+  file_size: null,
 };
 
 type AnalyzeResult = {
@@ -28,6 +34,14 @@ export function Resumes() {
   const [form, setForm] = useState<ResumeInsert>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+
+  // Staged upload: the file is held locally until the form is submitted, so a
+  // cancelled edit doesn't leave an orphan object in storage.
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [removeExistingFile, setRemoveExistingFile] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractNote, setExtractNote] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [analyzeOpen, setAnalyzeOpen] = useState(false);
   const [analyzeJobDesc, setAnalyzeJobDesc] = useState("");
@@ -52,9 +66,18 @@ export function Resumes() {
     load();
   }, [load]);
 
+  function resetFileState() {
+    setPendingFile(null);
+    setRemoveExistingFile(false);
+    setExtractNote(null);
+    setExtracting(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   function openCreate() {
     setEditing(null);
     setForm(emptyForm);
+    resetFileState();
     setModalOpen(true);
   }
 
@@ -65,7 +88,11 @@ export function Resumes() {
       title: resume.title,
       resume_text: resume.resume_text,
       notes: resume.notes,
+      file_path: resume.file_path,
+      file_name: resume.file_name,
+      file_size: resume.file_size,
     });
+    resetFileState();
     setModalOpen(true);
   }
 
@@ -73,6 +100,7 @@ export function Resumes() {
     setModalOpen(false);
     setEditing(null);
     setForm(emptyForm);
+    resetFileState();
   }
 
   function openAnalyze(resume: Resume) {
@@ -88,14 +116,139 @@ export function Resumes() {
     setAnalyzeResult(null);
   }
 
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError(null);
+    setExtractNote(null);
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Only PDF files are supported right now.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > MAX_RESUME_BYTES) {
+      setError(`That file is ${formatBytes(file.size)}. The limit is 10 MB.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setPendingFile(file);
+    setRemoveExistingFile(false);
+    setExtracting(true);
+
+    try {
+      // Loaded on demand — pdf.js is ~1 MB and most sessions never touch it.
+      const { extractPdfText } = await import("../lib/pdf");
+      const text = await extractPdfText(file);
+      if (text.length < 20) {
+        setExtractNote(
+          "Couldn't read text from this PDF — it's likely a scan or image. The file will still be saved; paste the text below if you want to use the analyzer."
+        );
+      } else if (form.resume_text.trim() && form.resume_text.trim() !== text.trim()) {
+        // Don't silently clobber text the user already wrote.
+        const replace = confirm(
+          "Replace the existing resume text with the text extracted from this PDF?"
+        );
+        if (replace) {
+          setForm((prev) => ({ ...prev, resume_text: text }));
+          setExtractNote(`Extracted ${text.length.toLocaleString()} characters.`);
+        } else {
+          setExtractNote("Kept your existing text. The PDF will still be attached.");
+        }
+      } else {
+        setForm((prev) => ({ ...prev, resume_text: text }));
+        setExtractNote(`Extracted ${text.length.toLocaleString()} characters.`);
+      }
+    } catch (err) {
+      setExtractNote(
+        `Couldn't extract text (${
+          err instanceof Error ? err.message : "unknown error"
+        }). The PDF will still be attached.`
+      );
+    } finally {
+      setExtracting(false);
+    }
+  }
+
+  function clearAttachment() {
+    setPendingFile(null);
+    setExtractNote(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    // Only flag deletion if there's a stored file to delete.
+    if (form.file_path) setRemoveExistingFile(true);
+    setForm((prev) => ({
+      ...prev,
+      file_path: null,
+      file_name: null,
+      file_size: null,
+    }));
+  }
+
+  async function openStoredFile(resume: Resume) {
+    if (!resume.file_path) return;
+    setError(null);
+
+    const { data, error: err } = await supabase.storage
+      .from(RESUME_BUCKET)
+      .createSignedUrl(resume.file_path, 60);
+
+    if (err) {
+      setError(err.message);
+      return;
+    }
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
     setError(null);
 
+    const originalPath = editing?.file_path ?? null;
+    let filePath = form.file_path;
+    let fileName = form.file_name;
+    let fileSize = form.file_size;
+    let uploadedPath: string | null = null;
+
+    if (pendingFile) {
+      const path = `${user.id}/${crypto.randomUUID()}.pdf`;
+      const { error: upErr } = await supabase.storage
+        .from(RESUME_BUCKET)
+        .upload(path, pendingFile, {
+          contentType: "application/pdf",
+          upsert: false,
+        });
+
+      if (upErr) {
+        setError(`Upload failed: ${upErr.message}`);
+        setSaving(false);
+        return;
+      }
+
+      uploadedPath = path;
+      filePath = path;
+      fileName = pendingFile.name;
+      fileSize = pendingFile.size;
+    }
+
     const row = {
-      ...form,
+      company: form.company,
+      title: form.title,
+      resume_text: form.resume_text,
+      notes: form.notes,
+      file_path: filePath,
+      file_name: fileName,
+      file_size: fileSize,
+    };
+
+    const rollbackUpload = async () => {
+      if (uploadedPath) {
+        await supabase.storage.from(RESUME_BUCKET).remove([uploadedPath]);
+      }
     };
 
     if (editing) {
@@ -104,8 +257,19 @@ export function Resumes() {
         .update(row)
         .eq("id", editing.id)
         .eq("user_id", user.id);
-      if (err) setError(err.message);
-      else {
+
+      if (err) {
+        await rollbackUpload();
+        setError(err.message);
+      } else {
+        // The row now points elsewhere, so the old object is safe to drop.
+        const stale =
+          originalPath && originalPath !== filePath ? originalPath : null;
+        if (stale || (removeExistingFile && originalPath && !filePath)) {
+          await supabase.storage
+            .from(RESUME_BUCKET)
+            .remove([stale ?? originalPath!]);
+        }
         closeModal();
         load();
       }
@@ -113,8 +277,11 @@ export function Resumes() {
       const { error: err } = await supabase
         .from("resumes")
         .insert({ ...row, user_id: user.id });
-      if (err) setError(err.message);
-      else {
+
+      if (err) {
+        await rollbackUpload();
+        setError(err.message);
+      } else {
         closeModal();
         load();
       }
@@ -122,15 +289,24 @@ export function Resumes() {
     setSaving(false);
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(resume: Resume) {
     if (!user || !confirm("Delete this resume entry?")) return;
+
     const { error: err } = await supabase
       .from("resumes")
       .delete()
-      .eq("id", id)
+      .eq("id", resume.id)
       .eq("user_id", user.id);
-    if (err) setError(err.message);
-    else load();
+
+    if (err) {
+      setError(err.message);
+      return;
+    }
+
+    if (resume.file_path) {
+      await supabase.storage.from(RESUME_BUCKET).remove([resume.file_path]);
+    }
+    load();
   }
 
   async function runAnalyze() {
@@ -139,15 +315,12 @@ export function Resumes() {
     setError(null);
     setAnalyzeResult(null);
 
-    const { data, error: err } = await supabase.functions.invoke(
-      "keyword-analyze",
-      {
-        body: {
-          resumeText: editing.resume_text,
-          jobDescription: analyzeJobDesc,
-        },
-      }
-    );
+    const { data, error: err } = await supabase.functions.invoke("keyword-analyze", {
+      body: {
+        resumeText: editing.resume_text,
+        jobDescription: analyzeJobDesc,
+      },
+    });
 
     if (err) setError(err.message);
     else setAnalyzeResult(data as AnalyzeResult);
@@ -162,9 +335,13 @@ export function Resumes() {
       r.company.toLowerCase().includes(q) ||
       r.title.toLowerCase().includes(q) ||
       r.resume_text.toLowerCase().includes(q) ||
+      (r.file_name ?? "").toLowerCase().includes(q) ||
       r.notes.toLowerCase().includes(q)
     );
   });
+
+  const attachedName = pendingFile?.name ?? form.file_name;
+  const attachedSize = pendingFile?.size ?? form.file_size;
 
   return (
     <div>
@@ -183,7 +360,7 @@ export function Resumes() {
       <div className="toolbar">
         <input
           type="search"
-          placeholder="Search company, title, notes…"
+          placeholder="Search company, title, file, notes…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="search-input"
@@ -220,6 +397,27 @@ export function Resumes() {
               render: (r) => r.title || "—",
             },
             {
+              key: "file",
+              header: "File",
+              render: (r) =>
+                r.file_path ? (
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openStoredFile(r);
+                    }}
+                    title={r.file_name ?? "Open PDF"}
+                  >
+                    PDF
+                    {r.file_size ? ` · ${formatBytes(r.file_size)}` : ""}
+                  </button>
+                ) : (
+                  <span className="cell-muted">—</span>
+                ),
+            },
+            {
               key: "notes",
               header: "Notes",
               className: "cell-notes",
@@ -248,7 +446,7 @@ export function Resumes() {
                   <button
                     type="button"
                     className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(r.id)}
+                    onClick={() => handleDelete(r)}
                   >
                     Delete
                   </button>
@@ -282,17 +480,88 @@ export function Resumes() {
                 />
               </div>
             </div>
+
             <div className="form-field">
-              <label htmlFor="resume_text">Resume text *</label>
+              <label htmlFor="resume_file">PDF file</label>
+              {attachedName ? (
+                <div className="file-chip">
+                  <div className="file-chip-main">
+                    <span className="file-chip-name" title={attachedName}>
+                      {attachedName}
+                    </span>
+                    <span className="cell-muted">
+                      {attachedSize ? formatBytes(attachedSize) : ""}
+                      {pendingFile ? " · not uploaded yet" : ""}
+                    </span>
+                  </div>
+                  <div className="actions-group">
+                    {!pendingFile && editing?.file_path && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => editing && openStoredFile(editing)}
+                      >
+                        View
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={clearAttachment}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-ghost file-drop"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Choose a PDF…
+                </button>
+              )}
+
+              <input
+                id="resume_file"
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+
+              <div className="help-text">
+                {extracting
+                  ? "Reading text from PDF…"
+                  : (extractNote ??
+                    "PDFs only, up to 10 MB. Text is pulled out automatically so the analyzer can use it.")}
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="resume_text">Resume text</label>
               <textarea
                 id="resume_text"
-                required
                 value={form.resume_text}
                 onChange={(e) => setForm({ ...form, resume_text: e.target.value })}
-                placeholder="Paste your resume text here…"
+                placeholder="Extracted from your PDF, or paste it here…"
                 style={{ minHeight: 220 }}
               />
+              <div className="help-text">
+                Used by the AI keyword analyzer. Edit freely — changes here don't
+                affect the stored PDF.
+              </div>
             </div>
+
             <div className="form-field">
               <label htmlFor="notes">Customization notes</label>
               <textarea
@@ -302,12 +571,23 @@ export function Resumes() {
                 placeholder="What did you customize for this company?"
               />
             </div>
+
             <div className="form-actions">
               <button type="button" className="btn btn-ghost" onClick={closeModal}>
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? "Saving…" : editing ? "Save" : "Add resume"}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={saving || extracting}
+              >
+                {saving
+                  ? pendingFile
+                    ? "Uploading…"
+                    : "Saving…"
+                  : editing
+                    ? "Save"
+                    : "Add resume"}
               </button>
             </div>
           </form>
@@ -317,6 +597,12 @@ export function Resumes() {
       {analyzeOpen && editing && (
         <Modal title="AI keyword analyzer" onClose={closeAnalyze}>
           <div className="entity-form">
+            {!editing.resume_text.trim() && (
+              <div className="help-text" style={{ marginBottom: "0.75rem" }}>
+                This resume has no text saved, so the analyzer has nothing to read.
+                Open Edit and attach a text-based PDF or paste the text first.
+              </div>
+            )}
             <div className="form-field">
               <label htmlFor="job_desc">Job description *</label>
               <textarea
@@ -339,7 +625,9 @@ export function Resumes() {
                 type="button"
                 className="btn btn-primary"
                 onClick={runAnalyze}
-                disabled={analyzing || !analyzeJobDesc.trim()}
+                disabled={
+                  analyzing || !analyzeJobDesc.trim() || !editing.resume_text.trim()
+                }
               >
                 {analyzing ? "Analyzing…" : "Analyze"}
               </button>
@@ -384,4 +672,3 @@ export function Resumes() {
     </div>
   );
 }
-

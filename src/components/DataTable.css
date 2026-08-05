@@ -1,11 +1,74 @@
-.table-wrap {
+/* Compounded with .card deliberately: .card is bundled later and its
+   `background` / `padding` shorthands would otherwise reset these. */
+.table-wrap.card {
   padding: 0;
-  overflow: hidden;
+  /* Wide tables scroll sideways inside their own card instead of being
+     clipped (or pushing the whole page sideways). */
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  /* Edge shading that shows only while there's more table to the right.
+     The first layer is a solid "cover" pinned to the end of the content
+     (background-attachment: local, so it scrolls with it); the second is
+     the shadow, pinned to the box. Scroll to the end and the cover slides
+     over the shadow and hides it. */
+  background-color: var(--bg-elevated);
+  background-image: linear-gradient(
+      to left,
+      var(--bg-elevated) 30%,
+      transparent
+    ),
+    linear-gradient(to left, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0));
+  background-position:
+    right center,
+    right center;
+  background-repeat: no-repeat;
+  background-size:
+    36px 100%,
+    16px 100%;
+  background-attachment: local, scroll;
+}
+
+.table-wrap:focus {
+  outline: none;
+}
+
+.table-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Keep the horizontal scrollbar visible rather than letting the OS fade
+   it out — it's the main cue that the table scrolls. */
+.table-wrap.card {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.table-wrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .data-table {
   width: 100%;
-  border-collapse: collapse;
+  /* `separate` is required for position:sticky to work on cells. */
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .data-table th,
@@ -13,6 +76,10 @@
   padding: 0.85rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
+  /* Cells keep their natural width and the table scrolls, rather than
+     wrapping columns into unreadable slivers. Long free text opts back
+     out via .cell-notes. */
+  white-space: nowrap;
 }
 
 .data-table th {
@@ -30,6 +97,35 @@
 
 .data-table tbody tr:hover {
   background: var(--bg-hover);
+}
+
+/* First column stays put while the rest scrolls, so a row never loses
+   its identifying label. */
+.data-table .col-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg-elevated);
+}
+
+.data-table th.col-sticky {
+  z-index: 2;
+  background: var(--bg);
+}
+
+.data-table tbody tr:hover .col-sticky {
+  background: var(--bg-hover);
+}
+
+/* Hairline that reads as an edge once the table is scrolled. */
+.data-table .col-sticky::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
 }
 
 .row-clickable {

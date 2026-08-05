@@ -1,20 +1,62 @@
+/* ------------------------------------------------------------------
+   Brand palette, sampled from the Offr+ artwork:
+   ink #202020 · sage #96be6e · light sage #aac88c · silver #c8c8c8
+   on warm paper white. Both themes are built from these.
+   ------------------------------------------------------------------ */
 :root {
-  --bg: #0c0c0e;
-  --bg-elevated: #141418;
-  --bg-hover: #1c1c22;
-  --border: #2a2a32;
-  --text: #ffffff;
-  --text-muted: rgba(255, 255, 255, 0.62);
-  --accent: #22c55e;
-  --accent-dim: rgba(34, 197, 94, 0.18);
-  --danger: #e85d5d;
-  --danger-dim: rgba(232, 93, 93, 0.12);
-  --success: #22c55e;
-  --warning: #34d399;
   --radius: 8px;
   --radius-lg: 12px;
   --font: "DM Sans", system-ui, sans-serif;
+
+  /* Brand constants (theme-independent) */
+  --brand-sage: #96be6e;
+  --brand-sage-light: #aac88c;
+  --brand-ink: #202020;
+}
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101210;
+  --bg-elevated: #161915;
+  --bg-hover: #1e221d;
+  --border: #2b3029;
+  --text: #f2f1ec;
+  --text-muted: rgba(242, 241, 236, 0.62);
+  --accent: #a5c97e;
+  --accent-dim: rgba(150, 190, 110, 0.16);
+  --accent-contrast: #16190f;
+  --danger: #e2726f;
+  --danger-dim: rgba(226, 114, 111, 0.12);
+  --success: #a5c97e;
+  --warning: #ddb35f;
+  --warning-dim: rgba(221, 179, 95, 0.14);
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --logo-green: #a5c97e;
+  --logo-green-light: #bcd8a0;
+  --logo-grey: #6f736c;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f5f0;
+  --bg-elevated: #fdfdfa;
+  --bg-hover: #edece4;
+  --border: #e0ded3;
+  --text: #202020;
+  --text-muted: rgba(32, 32, 32, 0.58);
+  --accent: #648b3e;
+  --accent-dim: rgba(150, 190, 110, 0.22);
+  --accent-contrast: #ffffff;
+  --danger: #c04f4c;
+  --danger-dim: rgba(192, 79, 76, 0.1);
+  --success: #648b3e;
+  --warning: #a07d2c;
+  --warning-dim: rgba(178, 141, 54, 0.14);
+  --shadow: 0 4px 24px rgba(60, 58, 50, 0.12);
+  --logo-green: #96be6e;
+  --logo-green-light: #aac88c;
+  --logo-grey: #c4c2ba;
 }
 
 *,
@@ -104,7 +146,7 @@ label {
 
 .btn-primary {
   background: var(--accent);
-  color: var(--bg);
+  color: var(--accent-contrast);
   border-color: var(--accent);
 }
 
@@ -172,7 +214,7 @@ label {
 }
 
 .badge-warning {
-  background: rgba(232, 184, 77, 0.15);
+  background: var(--warning-dim);
   color: var(--warning);
 }
 
@@ -182,8 +224,49 @@ label {
 }
 
 .badge-success {
-  background: rgba(107, 201, 138, 0.15);
+  background: var(--accent-dim);
   color: var(--success);
+}
+
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orbit-spin {
+  animation: orbit-spin 60s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-spin {
+    animation: none;
+  }
+}
+
+.loading-screen {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-banner {

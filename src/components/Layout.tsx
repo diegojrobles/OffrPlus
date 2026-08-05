@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { ThemeToggle } from "../contexts/ThemeContext";
+import { Wordmark } from "./Logo";
 import "./Layout.css";
 
 type IconName =
@@ -112,11 +114,10 @@ export function Layout() {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <span className="brand-mark">O+</span>
-          <span className="brand-text">Offr+</span>
+          <Wordmark size={26} />
         </div>
         <nav className="sidebar-nav">
-          <NavLink to="/" end className={navLinkClass}>
+          <NavLink to="/dashboard" className={navLinkClass}>
             <NavIcon name="grid" />
             Dashboard
           </NavLink>
@@ -163,9 +164,12 @@ export function Layout() {
           <span className="user-email" title={user?.email ?? ""}>
             {user?.email}
           </span>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={signOut}>
-            Sign out
-          </button>
+          <div className="sidebar-footer-actions">
+            <ThemeToggle />
+            <button type="button" className="btn btn-ghost btn-sm" onClick={signOut}>
+              Sign out
+            </button>
+          </div>
         </div>
       </aside>
       <main className="main">

@@ -31,12 +31,12 @@ export function Pipeline() {
 
   const [addStageOpen, setAddStageOpen] = useState(false);
   const [newStageName, setNewStageName] = useState("");
-  const [newStageColor, setNewStageColor] = useState("#22c55e");
+  const [newStageColor, setNewStageColor] = useState("#96be6e");
   const [savingStage, setSavingStage] = useState(false);
 
   const [renameStage, setRenameStage] = useState<PipelineStage | null>(null);
   const [renameName, setRenameName] = useState("");
-  const [renameColor, setRenameColor] = useState("#22c55e");
+  const [renameColor, setRenameColor] = useState("#96be6e");
 
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [contactNotes, setContactNotes] = useState("");
@@ -184,7 +184,7 @@ export function Pipeline() {
     else {
       setAddStageOpen(false);
       setNewStageName("");
-      setNewStageColor("#22c55e");
+      setNewStageColor("#96be6e");
       load();
     }
     setSavingStage(false);

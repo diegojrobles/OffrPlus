@@ -10,6 +10,7 @@ import { PageHeader } from "../components/PageHeader";
 const emptyForm: ContactInsert = {
   name: "",
   email: "",
+  phone: "",
   company: "",
   role: "",
   date_met: null,
@@ -58,6 +59,7 @@ export function Contacts() {
     setForm({
       name: contact.name,
       email: contact.email,
+      phone: contact.phone ?? "",
       company: contact.company,
       role: contact.role,
       date_met: contact.date_met,
@@ -127,6 +129,7 @@ export function Contacts() {
     return (
       c.name.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
+      (c.phone ?? "").toLowerCase().includes(q) ||
       c.company.toLowerCase().includes(q) ||
       c.role.toLowerCase().includes(q)
     );
@@ -149,7 +152,7 @@ export function Contacts() {
       <div className="toolbar">
         <input
           type="search"
-          placeholder="Search name, email, company, role…"
+          placeholder="Search name, email, phone, company, role…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="search-input"
@@ -187,6 +190,18 @@ export function Contacts() {
                 c.email ? (
                   <a className="cell-muted" href={`mailto:${c.email}`}>
                     {c.email}
+                  </a>
+                ) : (
+                  <span className="cell-muted">—</span>
+                ),
+            },
+            {
+              key: "phone",
+              header: "Phone",
+              render: (c) =>
+                c.phone ? (
+                  <a className="cell-muted" href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}>
+                    {c.phone}
                   </a>
                 ) : (
                   <span className="cell-muted">—</span>
@@ -276,15 +291,27 @@ export function Contacts() {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
             </div>
-            <div className="form-field">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="name@company.com"
-              />
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="name@company.com"
+                />
+              </div>
+              <div className="form-field">
+                <label htmlFor="phone">Phone</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="(555) 123-4567"
+                />
+              </div>
             </div>
             <div className="form-row">
               <div className="form-field">

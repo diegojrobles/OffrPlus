@@ -21,12 +21,19 @@ export function DataTable<T>({
   onRowClick,
 }: DataTableProps<T>) {
   return (
-    <div className="table-wrap card">
+    // tabIndex makes the scroll region reachable by keyboard once it overflows.
+    <div className="table-wrap card" tabIndex={0} role="group" aria-label="Table">
       <table className="data-table">
         <thead>
           <tr>
-            {columns.map((col) => (
-              <th key={col.key} className={col.className}>
+            {columns.map((col, i) => (
+              <th
+                key={col.key}
+                scope="col"
+                className={[col.className, i === 0 ? "col-sticky" : null]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
                 {col.header}
               </th>
             ))}
@@ -39,8 +46,13 @@ export function DataTable<T>({
               className={onRowClick ? "row-clickable" : undefined}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
             >
-              {columns.map((col) => (
-                <td key={col.key} className={col.className}>
+              {columns.map((col, i) => (
+                <td
+                  key={col.key}
+                  className={[col.className, i === 0 ? "col-sticky" : null]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
                   {col.render(row)}
                 </td>
               ))}

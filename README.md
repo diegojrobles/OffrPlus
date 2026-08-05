@@ -5,8 +5,9 @@ A full-stack web app for finance students to track networking contacts and job a
 ## Features
 
 - **Secure authentication** — email/password sign up and sign in via Supabase Auth
-- **Contacts** — name, company, role, date met, follow-up date, notes
-- **Applications** — company, role, status, date applied, notes
+- **Contacts** — name, email, phone, company, role, date met, follow-up date, notes
+- **Applications** — company, role, status, date applied, salary, expected reply date, location, link, notes, plus user-defined custom fields; any column can be shown or hidden from the **Columns** menu
+- **Resumes** — attach a PDF (stored privately in Supabase Storage) with automatic text extraction for the keyword analyzer
 - **Dashboard** — summary stats, upcoming follow-ups, recent applications
 - **Dark minimal UI** — clean layout with green accent
 
@@ -20,9 +21,12 @@ A full-stack web app for finance students to track networking contacts and job a
    - `supabase/migrations/002_contacts_app_links_resumes.sql`
    - `supabase/migrations/003_pipeline.sql`
    - `supabase/migrations/004_calendar.sql`
+   - `supabase/migrations/005_phone_app_columns_resume_files.sql`
 3. Under **Authentication → Providers**, enable **Email** (enabled by default).
 4. For local dev, you may disable **Confirm email** under Authentication → Settings, or confirm via the email link Supabase sends.
-5. Copy your project **URL** and **anon public** key from **Project Settings → API**.
+5. Copy your project **URL** and **publishable** key (or legacy **anon** key) from **Project Settings → API Keys**. The URL is `https://<project-ref>.supabase.co` — not the dashboard address.
+
+Migration `005` also creates a private **`resumes` storage bucket** (PDF only, 10 MB cap) with per-user RLS policies. No manual bucket setup is needed.
 
 ### 2. Environment
 

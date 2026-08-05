@@ -157,7 +157,7 @@
 }
 
 .video-icon-btn.zoom {
-  border-color: rgba(34, 197, 94, 0.45);
+  border-color: var(--accent);
   color: var(--accent);
 }
 
@@ -230,6 +230,42 @@
   }
   .link-input-row {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Narrow window (a half-width browser lands here). The 220px sidebar
+   stays put, so ~1000px of viewport is roughly 740px of content.
+   A media query rather than a container query because .calendar-wrap
+   is itself one of the things that needs restyling.
+   ------------------------------------------------------------------ */
+@media (max-width: 1000px) {
+  /* Seven columns can't compress forever, so give the month grid a floor
+     and let the page area scroll to reach it. */
+  .calendar-wrap {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .calendar-grid {
+    min-width: 660px;
+  }
+
+  .day-cell {
+    min-height: 92px;
+    padding: 0.45rem 0.45rem 0.6rem;
+  }
+
+  .dow {
+    padding: 0.5rem 0.45rem;
+  }
+
+  .event-pill {
+    padding: 0.28rem 0.4rem;
+  }
+
+  .cal-controls {
+    gap: 0.5rem;
   }
 }
 
