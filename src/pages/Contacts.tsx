@@ -1,9 +1,12 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { formatDate, isDueSoon, isOverdue, toInputDate } from "../lib/dates";
+import { useColumnPrefs } from "../lib/columnPrefs";
 import type { Contact, ContactInsert } from "../types/database";
 import { DataTable } from "../components/DataTable";
+import { ColumnPicker, type ColumnOption } from "../components/ColumnPicker";
+import { LinkedInIcon } from "../components/icons";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 
@@ -21,13 +24,7 @@ function normalizeLinkedInUrl(raw: string): string {
   return `https://${v}`;
 }
 
-function LinkedInIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z" />
-    </svg>
-  );
-}
+const COLUMN_PREFS_KEY = "offrplus.contacts.hiddenColumns";
 
 const emptyForm: ContactInsert = {
   name: "",
@@ -52,6 +49,8 @@ export function Contacts() {
   const [form, setForm] = useState<ContactInsert>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+
+  const { isVisible, toggle, showAll, hiddenCount } = useColumnPrefs(COLUMN_PREFS_KEY);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -160,6 +159,21 @@ export function Contacts() {
     );
   });
 
+  const columnOptions: ColumnOption[] = useMemo(
+    () => [
+      { id: "name", label: "Name", locked: true },
+      { id: "email", label: "Email" },
+      { id: "phone", label: "Phone" },
+      { id: "linkedin", label: "LinkedIn" },
+      { id: "company", label: "Company" },
+      { id: "role", label: "Role" },
+      { id: "date_met", label: "Date met" },
+      { id: "follow_up", label: "Follow up" },
+      { id: "notes", label: "Notes" },
+    ],
+    []
+  );
+
   return (
     <div>
       <PageHeader
@@ -183,6 +197,13 @@ export function Contacts() {
           className="search-input"
           aria-label="Search contacts"
         />
+        <ColumnPicker
+          options={columnOptions}
+          isVisible={isVisible}
+          onToggle={toggle}
+          onShowAll={showAll}
+          hiddenCount={hiddenCount}
+        />
       </div>
 
       {loading ? (
@@ -203,15 +224,18 @@ export function Contacts() {
           data={filtered}
           keyFn={(c) => c.id}
           columns={[
+            ...[
             {
+              id: "name",
               key: "name",
               header: "Name",
-              render: (c) => <strong>{c.name}</strong>,
+              render: (c: Contact) => <strong>{c.name}</strong>,
             },
             {
+              id: "email",
               key: "email",
               header: "Email",
-              render: (c) =>
+              render: (c: Contact) =>
                 c.email ? (
                   <a className="cell-muted" href={`mailto:${c.email}`}>
                     {c.email}
@@ -221,9 +245,10 @@ export function Contacts() {
                 ),
             },
             {
+              id: "phone",
               key: "phone",
               header: "Phone",
-              render: (c) =>
+              render: (c: Contact) =>
                 c.phone ? (
                   <a className="cell-muted" href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}>
                     {c.phone}
@@ -233,9 +258,10 @@ export function Contacts() {
                 ),
             },
             {
+              id: "linkedin",
               key: "linkedin",
               header: "LinkedIn",
-              render: (c) =>
+              render: (c: Contact) =>
                 c.linkedin_url ? (
                   <a
                     className="linkedin-link"
@@ -253,28 +279,32 @@ export function Contacts() {
                 ),
             },
             {
+              id: "company",
               key: "company",
               header: "Company",
-              render: (c) => c.company || "—",
+              render: (c: Contact) => c.company || "—",
             },
             {
+              id: "role",
               key: "role",
               header: "Role",
-              render: (c) => (
+              render: (c: Contact) => (
                 <span className="cell-muted">{c.role || "—"}</span>
               ),
             },
             {
+              id: "date_met",
               key: "date_met",
               header: "Date met",
-              render: (c) => (
+              render: (c: Contact) => (
                 <span className="cell-muted">{formatDate(c.date_met)}</span>
               ),
             },
             {
+              id: "follow_up",
               key: "follow_up",
               header: "Follow up",
-              render: (c) => (
+              render: (c: Contact) => (
                 <span
                   className={
                     isOverdue(c.follow_up_date)
@@ -289,16 +319,18 @@ export function Contacts() {
               ),
             },
             {
+              id: "notes",
               key: "notes",
               header: "Notes",
               className: "cell-notes",
-              render: (c) => c.notes || "—",
+              render: (c: Contact) => c.notes || "—",
             },
+            ].filter((col) => col.id === "name" || isVisible(col.id)),
             {
               key: "actions",
               header: "",
               className: "cell-actions",
-              render: (c) => (
+              render: (c: Contact) => (
                 <div className="actions-group" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"

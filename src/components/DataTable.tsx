@@ -30,7 +30,13 @@ export function DataTable<T>({
               <th
                 key={col.key}
                 scope="col"
-                className={[col.className, i === 0 ? "col-sticky" : null]
+                className={[
+                  col.className,
+                  i === 0 ? "col-sticky" : null,
+                  // Row actions pin to the right edge so they stay reachable
+                  // no matter how far the table is scrolled.
+                  i === columns.length - 1 ? "col-sticky-end" : null,
+                ]
                   .filter(Boolean)
                   .join(" ")}
               >
@@ -49,7 +55,11 @@ export function DataTable<T>({
               {columns.map((col, i) => (
                 <td
                   key={col.key}
-                  className={[col.className, i === 0 ? "col-sticky" : null]
+                  className={[
+                    col.className,
+                    i === 0 ? "col-sticky" : null,
+                    i === columns.length - 1 ? "col-sticky-end" : null,
+                  ]
                     .filter(Boolean)
                     .join(" ")}
                 >

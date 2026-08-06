@@ -9,6 +9,7 @@ import {
 } from "../types/database";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
+import { LinkedInIcon } from "../components/icons";
 import "./Pipeline.css";
 
 const NOT_STARTED = "Not Started";
@@ -491,6 +492,28 @@ export function Pipeline() {
       {editingContact && (
         <Modal title={`Edit ${editingContact.name}`} onClose={closeContact}>
           <form className="entity-form" onSubmit={saveContact}>
+            {(editingContact.company ||
+              editingContact.role ||
+              editingContact.linkedin_url) && (
+              <div className="contact-meta">
+                <div className="contact-meta-text">
+                  {editingContact.company || "—"}
+                  {editingContact.role ? ` · ${editingContact.role}` : ""}
+                </div>
+                {editingContact.linkedin_url && (
+                  <a
+                    className="btn btn-ghost btn-sm"
+                    href={editingContact.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={editingContact.linkedin_url}
+                  >
+                    <LinkedInIcon size={14} />
+                    LinkedIn
+                  </a>
+                )}
+              </div>
+            )}
             <div className="form-field">
               <label htmlFor="follow_up_date">Follow up</label>
               <input

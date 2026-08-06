@@ -167,6 +167,23 @@
   padding: 0.4rem 0.2rem;
 }
 
+/* Company/role + LinkedIn header inside the pipeline contact modal */
+.contact-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.contact-meta-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  min-width: 0;
+}
+
 .stage-form-row {
   display: grid;
   grid-template-columns: 1fr 120px;

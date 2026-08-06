@@ -117,6 +117,34 @@
   background: var(--bg-hover);
 }
 
+/* Row actions pin to the right edge, so Edit/Delete are reachable without
+   scrolling to the end of a wide table. */
+.data-table .col-sticky-end {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--bg-elevated);
+}
+
+.data-table th.col-sticky-end {
+  z-index: 2;
+  background: var(--bg);
+}
+
+.data-table tbody tr:hover .col-sticky-end {
+  background: var(--bg-hover);
+}
+
+.data-table .col-sticky-end::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+
 /* Hairline that reads as an edge once the table is scrolled. */
 .data-table .col-sticky::after {
   content: "";
