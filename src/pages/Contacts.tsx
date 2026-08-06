@@ -7,10 +7,33 @@ import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 
+/**
+ * Accepts anything a user is likely to paste — a full URL, "linkedin.com/in/x",
+ * or just "in/x" — and returns a clickable https URL (or "" if blank).
+ */
+function normalizeLinkedInUrl(raw: string): string {
+  const v = raw.trim();
+  if (!v) return "";
+  if (v.startsWith("http://") || v.startsWith("https://")) return v;
+  if (v.startsWith("linkedin.com") || v.startsWith("www.linkedin.com"))
+    return `https://${v}`;
+  if (v.startsWith("in/")) return `https://www.linkedin.com/${v}`;
+  return `https://${v}`;
+}
+
+function LinkedInIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z" />
+    </svg>
+  );
+}
+
 const emptyForm: ContactInsert = {
   name: "",
   email: "",
   phone: "",
+  linkedin_url: "",
   company: "",
   role: "",
   date_met: null,
@@ -60,6 +83,7 @@ export function Contacts() {
       name: contact.name,
       email: contact.email,
       phone: contact.phone ?? "",
+      linkedin_url: contact.linkedin_url ?? "",
       company: contact.company,
       role: contact.role,
       date_met: contact.date_met,
@@ -84,6 +108,7 @@ export function Contacts() {
 
     const row = {
       ...form,
+      linkedin_url: normalizeLinkedInUrl(form.linkedin_url),
       date_met: form.date_met || null,
       follow_up_date: form.follow_up_date || null,
     };
@@ -208,6 +233,26 @@ export function Contacts() {
                 ),
             },
             {
+              key: "linkedin",
+              header: "LinkedIn",
+              render: (c) =>
+                c.linkedin_url ? (
+                  <a
+                    className="linkedin-link"
+                    href={c.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={c.linkedin_url}
+                    aria-label={`${c.name} on LinkedIn`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <LinkedInIcon />
+                  </a>
+                ) : (
+                  <span className="cell-muted">—</span>
+                ),
+            },
+            {
               key: "company",
               header: "Company",
               render: (c) => c.company || "—",
@@ -312,6 +357,17 @@ export function Contacts() {
                   placeholder="(555) 123-4567"
                 />
               </div>
+            </div>
+            <div className="form-field">
+              <label htmlFor="linkedin_url">LinkedIn</label>
+              <input
+                id="linkedin_url"
+                value={form.linkedin_url}
+                onChange={(e) =>
+                  setForm({ ...form, linkedin_url: e.target.value })
+                }
+                placeholder="linkedin.com/in/their-profile"
+              />
             </div>
             <div className="form-row">
               <div className="form-field">

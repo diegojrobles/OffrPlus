@@ -81,6 +81,22 @@
   font-size: 0.9rem;
 }
 
+/* LinkedIn icon link in the contacts table */
+.linkedin-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+
+.linkedin-link:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
 .help-text {
   margin-top: 0.35rem;
   font-size: 0.85rem;
