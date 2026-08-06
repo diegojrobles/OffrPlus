@@ -56,10 +56,14 @@ export function OrbitMark({
     >
       <g
         className={animated ? "orbit-spin" : undefined}
-        style={{ transformOrigin: "703.5px 1065px" }}
+        style={{ transformOrigin: "703.5px 1065px", transform: "scale(.95"}}>
+      <g
+        className={animated ? "orbit-spin" : undefined}
+        style={{transformOrigin: "703.5px 1065px"}}
       >
         <path d={mark_green_outer} fill={GREEN} fillRule="evenodd" />
         <path d={mark_ink_outer} fill="currentColor" fillRule="evenodd" />
+      </g>
       </g>
       <path d={mark_ink_ul} fill="currentColor" fillRule="evenodd" />
       <path d={mark_ink_mid} fill="currentColor" fillRule="evenodd" />
