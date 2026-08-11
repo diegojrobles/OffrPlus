@@ -1,7 +1,15 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { formatBytes, MAX_RESUME_BYTES } from "../lib/files";
+import {
+  contentTypeFor,
+  extractResumeText,
+  formatBytes,
+  MAX_RESUME_BYTES,
+  RESUME_ACCEPT,
+  resumeFileKind,
+  type ResumeFileKind,
+} from "../lib/files";
 import type { Resume, ResumeInsert } from "../types/database";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
@@ -38,6 +46,7 @@ export function Resumes() {
   // Staged upload: the file is held locally until the form is submitted, so a
   // cancelled edit doesn't leave an orphan object in storage.
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingKind, setPendingKind] = useState<ResumeFileKind | null>(null);
   const [removeExistingFile, setRemoveExistingFile] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [extractNote, setExtractNote] = useState<string | null>(null);
@@ -68,6 +77,7 @@ export function Resumes() {
 
   function resetFileState() {
     setPendingFile(null);
+    setPendingKind(null);
     setRemoveExistingFile(false);
     setExtractNote(null);
     setExtracting(false);
@@ -123,8 +133,13 @@ export function Resumes() {
     setError(null);
     setExtractNote(null);
 
-    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-      setError("Only PDF files are supported right now.");
+    const kind = resumeFileKind(file);
+    if (!kind) {
+      setError(
+        file.name.toLowerCase().endsWith(".doc")
+          ? "Older .doc files can't be read. Save it as .docx or PDF and try again."
+          : "Only PDF and .docx files are supported."
+      );
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -136,27 +151,28 @@ export function Resumes() {
     }
 
     setPendingFile(file);
+    setPendingKind(kind);
     setRemoveExistingFile(false);
     setExtracting(true);
 
     try {
-      // Loaded on demand — pdf.js is ~1 MB and most sessions never touch it.
-      const { extractPdfText } = await import("../lib/pdf");
-      const text = await extractPdfText(file);
+      const text = await extractResumeText(file, kind);
       if (text.length < 20) {
         setExtractNote(
-          "Couldn't read text from this PDF — it's likely a scan or image. The file will still be saved; paste the text below if you want to use the analyzer."
+          kind === "pdf"
+            ? "Couldn't read text from this PDF — it's likely a scan or image. The file will still be saved; paste the text below if you want to use the analyzer."
+            : "Couldn't read text from this document. The file will still be saved; paste the text below if you want to use the analyzer."
         );
       } else if (form.resume_text.trim() && form.resume_text.trim() !== text.trim()) {
         // Don't silently clobber text the user already wrote.
         const replace = confirm(
-          "Replace the existing resume text with the text extracted from this PDF?"
+          "Replace the existing resume text with the text extracted from this file?"
         );
         if (replace) {
           setForm((prev) => ({ ...prev, resume_text: text }));
           setExtractNote(`Extracted ${text.length.toLocaleString()} characters.`);
         } else {
-          setExtractNote("Kept your existing text. The PDF will still be attached.");
+          setExtractNote("Kept your existing text. The file will still be attached.");
         }
       } else {
         setForm((prev) => ({ ...prev, resume_text: text }));
@@ -166,7 +182,7 @@ export function Resumes() {
       setExtractNote(
         `Couldn't extract text (${
           err instanceof Error ? err.message : "unknown error"
-        }). The PDF will still be attached.`
+        }). The file will still be attached.`
       );
     } finally {
       setExtracting(false);
@@ -215,11 +231,12 @@ export function Resumes() {
     let uploadedPath: string | null = null;
 
     if (pendingFile) {
-      const path = `${user.id}/${crypto.randomUUID()}.pdf`;
+      const kind = pendingKind ?? "pdf";
+      const path = `${user.id}/${crypto.randomUUID()}.${kind}`;
       const { error: upErr } = await supabase.storage
         .from(RESUME_BUCKET)
         .upload(path, pendingFile, {
-          contentType: "application/pdf",
+          contentType: contentTypeFor(kind),
           upsert: false,
         });
 
@@ -408,9 +425,9 @@ export function Resumes() {
                       e.stopPropagation();
                       openStoredFile(r);
                     }}
-                    title={r.file_name ?? "Open PDF"}
+                    title={r.file_name ?? "Open file"}
                   >
-                    PDF
+                    {r.file_name?.toLowerCase().endsWith(".docx") ? "DOCX" : "PDF"}
                     {r.file_size ? ` · ${formatBytes(r.file_size)}` : ""}
                   </button>
                 ) : (
@@ -482,7 +499,7 @@ export function Resumes() {
             </div>
 
             <div className="form-field">
-              <label htmlFor="resume_file">PDF file</label>
+              <label htmlFor="resume_file">Resume file</label>
               {attachedName ? (
                 <div className="file-chip">
                   <div className="file-chip-main">
@@ -526,7 +543,7 @@ export function Resumes() {
                   className="btn btn-ghost file-drop"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Choose a PDF…
+                  Choose a PDF or Word file…
                 </button>
               )}
 
@@ -534,16 +551,16 @@ export function Resumes() {
                 id="resume_file"
                 ref={fileInputRef}
                 type="file"
-                accept="application/pdf,.pdf"
+                accept={RESUME_ACCEPT}
                 onChange={handleFileChange}
                 style={{ display: "none" }}
               />
 
               <div className="help-text">
                 {extracting
-                  ? "Reading text from PDF…"
+                  ? "Reading text from your file…"
                   : (extractNote ??
-                    "PDFs only, up to 10 MB. Text is pulled out automatically so the analyzer can use it.")}
+                    "PDF or Word (.docx), up to 10 MB. Text is pulled out automatically so the analyzer can use it.")}
               </div>
             </div>
 
@@ -553,12 +570,12 @@ export function Resumes() {
                 id="resume_text"
                 value={form.resume_text}
                 onChange={(e) => setForm({ ...form, resume_text: e.target.value })}
-                placeholder="Extracted from your PDF, or paste it here…"
+                placeholder="Extracted from your file, or paste it here…"
                 style={{ minHeight: 220 }}
               />
               <div className="help-text">
                 Used by the AI keyword analyzer. Edit freely — changes here don't
-                affect the stored PDF.
+                affect the stored file.
               </div>
             </div>
 
@@ -600,7 +617,7 @@ export function Resumes() {
             {!editing.resume_text.trim() && (
               <div className="help-text" style={{ marginBottom: "0.75rem" }}>
                 This resume has no text saved, so the analyzer has nothing to read.
-                Open Edit and attach a text-based PDF or paste the text first.
+                Open Edit and attach a text-based PDF or Word file, or paste the text first.
               </div>
             )}
             <div className="form-field">
