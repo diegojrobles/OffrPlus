@@ -56,7 +56,7 @@ export function OrbitMark({
     >
       <g
         className={animated ? "orbit-spin" : undefined}
-        style={{ transformOrigin: "703.5px 1065px", transform: "scale(.95"}}>
+        style={{ transformOrigin: "703.5px 1065px", transform: "scale(.95)"}}>
       <g
         className={animated ? "orbit-spin" : undefined}
         style={{transformOrigin: "703.5px 1065px"}}
