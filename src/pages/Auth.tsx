@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { OrbitMark, Wordmark } from "../components/Logo";
+import { MicrosoftIcon } from "../components/icons";
+import { signInWithMicrosoft } from "../lib/outlook";
 import { ThemeToggle } from "../contexts/ThemeContext";
 import "./Auth.css";
 
@@ -98,6 +100,23 @@ export function Auth({ mode }: AuthProps) {
 
           {error && <div className="error-banner">{error}</div>}
           {message && <div className="success-banner">{message}</div>}
+
+          <button
+            type="button"
+            className="btn btn-ghost oauth-btn"
+            onClick={async () => {
+              setError(null);
+              const { error: err } = await signInWithMicrosoft();
+              if (err) setError(err);
+            }}
+          >
+            <MicrosoftIcon size={17} />
+            Continue with Microsoft
+          </button>
+
+          <div className="auth-divider">
+            <span>or</span>
+          </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-field">

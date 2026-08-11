@@ -14,7 +14,8 @@ type IconName =
   | "briefcase"
   | "document"
   | "chevron-down"
-  | "chevron-up";
+  | "chevron-up"
+  | "settings";
 
 function NavIcon({ name }: { name: IconName }) {
   const common = {
@@ -79,6 +80,13 @@ function NavIcon({ name }: { name: IconName }) {
         <svg {...common}>
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14 2 14 8 20 8" />
+        </svg>
+      );
+    case "settings":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
         </svg>
       );
     case "chevron-down":
@@ -159,6 +167,11 @@ export function Layout() {
               </div>
             )}
           </div>
+
+          <NavLink to="/settings" className={navLinkClass}>
+            <NavIcon name="settings" />
+            Settings
+          </NavLink>
         </nav>
         <div className="sidebar-footer">
           <span className="user-email" title={user?.email ?? ""}>

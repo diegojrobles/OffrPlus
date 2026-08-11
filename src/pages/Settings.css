@@ -1,0 +1,40 @@
+.integration-card {
+  max-width: 720px;
+}
+
+.integration-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.integration-id {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.integration-id h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.integration-id p {
+  margin: 0;
+  font-size: 0.9rem;
+  max-width: 46ch;
+}
+
+.integration-status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}

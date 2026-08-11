@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { toInputDate } from "../lib/dates";
 import type { CalendarEvent, Contact, MeetingPlatform } from "../types/database";
+import { pushEventToOutlook, deleteEventFromOutlook, getOutlookStatus } from "../lib/outlook";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 import "./Calendar.css";
@@ -182,6 +183,9 @@ export function Calendar() {
   const [formNotes, setFormNotes] = useState<string>("");
   const [formLink, setFormLink] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [formTeams, setFormTeams] = useState(false);
+  const [outlookConnected, setOutlookConnected] = useState(false);
+  const [syncNote, setSyncNote] = useState<string | null>(null);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<CalendarEvent | null>(null);
@@ -255,6 +259,11 @@ export function Calendar() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!user) return;
+    getOutlookStatus(user.id).then((st) => setOutlookConnected(st.isConnected));
+  }, [user]);
+
   const contactsById = useMemo(() => {
     const m = new Map<string, Contact>();
     for (const c of contacts) m.set(c.id, c);
@@ -279,6 +288,8 @@ export function Calendar() {
     setFormEnd("");
     setFormNotes("");
     setFormLink("");
+    setFormTeams(false);
+    setSyncNote(null);
     setCreateOpen(true);
   }
 
@@ -307,15 +318,66 @@ export function Calendar() {
       meeting_link: meetingLink,
       meeting_platform: meetingPlatform,
       event_type: "manual",
+      wants_teams: formTeams,
     };
 
-    const { error: err } = await supabase.from("events").insert(payload);
+    const { data: inserted, error: err } = await supabase
+      .from("events")
+      .insert(payload)
+      .select("id")
+      .single();
+
+    if (err) {
+      setError(err.message);
+      setSaving(false);
+      return;
+    }
+
+    setCreateOpen(false);
+    setSyncNote(null);
+
+    // Push to Outlook only if the user has connected it. A sync failure must
+    // not lose the event — it's already saved locally at this point.
+    if (outlookConnected && inserted) {
+      const result = await pushEventToOutlook(inserted.id);
+      if (!result.ok) {
+        setSyncNote(
+          result.needsReconnect
+            ? "Saved, but your Outlook connection expired. Reconnect in Settings."
+            : `Saved, but Outlook sync failed: ${result.error}`
+        );
+      } else if (result.teamsUnavailable) {
+        setSyncNote(
+          "Added to Outlook. Teams links need a work or school Microsoft account, so none was created."
+        );
+      } else if (result.joinUrl) {
+        setSyncNote("Added to Outlook with a Teams meeting.");
+      } else {
+        setSyncNote("Added to your Outlook calendar.");
+      }
+    }
+
+    load();
+    setSaving(false);
+  }
+
+  async function deleteEvent(ev: CalendarEvent) {
+    if (!user || !confirm(`Delete "${ev.title}"?`)) return;
+
+    // Remove from Outlook first, while we still have the linkage row.
+    if (ev.outlook_event_id) await deleteEventFromOutlook(ev.id);
+
+    const { error: err } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", ev.id)
+      .eq("user_id", user.id);
+
     if (err) setError(err.message);
     else {
-      setCreateOpen(false);
+      setDetailOpen(false);
       load();
     }
-    setSaving(false);
   }
 
   function prev() {
@@ -374,6 +436,11 @@ export function Calendar() {
       />
 
       {error && <div className="error-banner">{error}</div>}
+      {syncNote && (
+        <div className="success-banner" role="status">
+          {syncNote}
+        </div>
+      )}
 
       <div className="cal-controls">
         <div className="cal-left">
@@ -630,6 +697,24 @@ export function Calendar() {
               </div>
             </div>
 
+            {outlookConnected && (
+              <div className="form-field">
+                <label className="checkbox-row" htmlFor="wants_teams">
+                  <input
+                    id="wants_teams"
+                    type="checkbox"
+                    checked={formTeams}
+                    onChange={(e) => setFormTeams(e.target.checked)}
+                  />
+                  <span>Create a Teams meeting</span>
+                </label>
+                <div className="help-text">
+                  This event syncs to your Outlook calendar. Teams links require
+                  a work or school Microsoft account.
+                </div>
+              </div>
+            )}
+
             <div className="form-field">
               <label htmlFor="notes">Notes</label>
               <textarea
@@ -702,6 +787,27 @@ export function Calendar() {
                     </div>
                   </div>
                 )}
+
+                {selected.sync_error && (
+                  <div className="error-banner" style={{ margin: 0 }}>
+                    {selected.sync_error}
+                  </div>
+                )}
+
+                {selected.outlook_event_id && !selected.sync_error && (
+                  <div className="cell-muted" style={{ fontSize: "0.85rem" }}>
+                    Synced to Outlook
+                    {selected.teams_join_url ? " with a Teams meeting" : ""}.
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => deleteEvent(selected)}
+                >
+                  Delete event
+                </button>
 
                 {selected.meeting_link && (
                   <button

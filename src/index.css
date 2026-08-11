@@ -269,6 +269,16 @@ label {
   }
 }
 
+.success-banner {
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--success);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
 .error-banner {
   background: var(--danger-dim);
   border: 1px solid rgba(232, 93, 93, 0.3);

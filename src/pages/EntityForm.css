@@ -97,6 +97,27 @@
   background: var(--bg-hover);
 }
 
+/* Inline checkbox + label, e.g. "Create a Teams meeting" */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 .help-text {
   margin-top: 0.35rem;
   font-size: 0.85rem;

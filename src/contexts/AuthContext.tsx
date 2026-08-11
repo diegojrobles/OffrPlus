@@ -36,6 +36,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setLoading(false);
+
+      // Microsoft tokens appear on the session exactly once, right after the
+      // OAuth redirect, and Supabase does not persist them. Hand them to the
+      // edge function immediately or they're gone.
+      if (s?.provider_refresh_token) {
+        import("../lib/outlook")
+          .then((m) => m.persistProviderTokens(s))
+          .catch(() => {
+            /* non-fatal: the user can reconnect from Settings */
+          });
+      }
     });
 
     return () => subscription.unsubscribe();

@@ -98,6 +98,11 @@ export interface CalendarEvent {
   meeting_link: string | null;
   meeting_platform: MeetingPlatform;
   event_type: EventType;
+  outlook_event_id: string | null;
+  teams_join_url: string | null;
+  wants_teams: boolean;
+  sync_error: string | null;
+  synced_at: string | null;
   created_at: string;
 }
 

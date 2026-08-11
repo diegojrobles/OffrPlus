@@ -10,6 +10,7 @@ import { Applications } from "./pages/Applications";
 import { Resumes } from "./pages/Resumes";
 import { Pipeline } from "./pages/Pipeline";
 import { Calendar } from "./pages/Calendar";
+import { Settings } from "./pages/Settings";
 import "./pages/EntityForm.css";
 
 /** "/" is the public landing for visitors, the dashboard for users. */
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="contacts" element={<Contacts />} />
             <Route path="applications" element={<Applications />} />
             <Route path="resumes" element={<Resumes />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

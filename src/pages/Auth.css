@@ -93,6 +93,32 @@
   font-size: 0.95rem;
 }
 
+.oauth-btn {
+  width: 100%;
+  padding: 0.7rem;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* "or" rule between the OAuth button and the email form */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -147,16 +173,6 @@
 
 .auth-switch a:hover {
   text-decoration: underline;
-}
-
-.success-banner {
-  background: var(--accent-dim);
-  border: 1px solid var(--accent);
-  color: var(--success);
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
 }
 
 /* ---------------- narrow ---------------- */
