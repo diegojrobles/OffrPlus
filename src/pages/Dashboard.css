@@ -1,112 +1,304 @@
-.stats-grid {
+/* ------------------------------------------------------------------
+   Dashboard: ordered by urgency, not by data type.
+   1. What needs doing   2. What's new   3. Totals
+   ------------------------------------------------------------------ */
+
+.today {
+  margin-bottom: 2.25rem;
+}
+
+.today-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1rem;
-  margin-bottom: 1.75rem;
 }
 
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 1.1rem 1.25rem;
-}
-
-.stat-value {
-  font-size: 1.75rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  color: var(--accent);
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-}
-
-.dashboard-section {
-  padding: 1.25rem;
+.today-card {
+  padding: 1.25rem 1.35rem;
 }
 
 .section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
 }
 
 .section-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.78rem;
   font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.today-count {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.today-subhead {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
 }
 
 .section-link {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--accent);
+  white-space: nowrap;
 }
 
 .section-link:hover {
   text-decoration: underline;
 }
 
-.section-empty {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.mini-list {
+.today-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.mini-list li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 0.1rem 0.75rem;
-  padding: 0.65rem 0;
+.today-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
   border-bottom: 1px solid var(--border);
 }
 
-.mini-list li:last-child {
+.today-list li:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
-.mini-list-primary {
+.today-list li:first-child {
+  padding-top: 0;
+}
+
+.today-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.today-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.today-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------
+   Totals: a quiet strip rather than four big boxes competing with the
+   things that actually need action.
+   ------------------------------------------------------------------ */
+
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem 1.15rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  transition: background 0.15s;
+}
+
+.stat-chip:hover {
+  background: var(--bg-hover);
+}
+
+.stat-chip-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.stat-chip-accent {
+  color: var(--accent);
+}
+
+.stat-chip-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ------------------------------------------------------------------
+   Quick actions
+   ------------------------------------------------------------------ */
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.quick-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 0.88rem;
   font-weight: 500;
-  grid-column: 1;
+  transition: color 0.15s, border-color 0.15s;
 }
 
-.mini-list-secondary {
+.quick-action:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.quick-action-plus {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------
+   Insight cards (pipeline, momentum, recent activity)
+   ------------------------------------------------------------------ */
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.25rem;
+}
+
+.insight-card {
+  padding: 1.25rem 1.35rem;
+}
+
+.insight-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.insight-foot {
+  margin: 1rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
   font-size: 0.85rem;
   color: var(--text-muted);
-  grid-column: 1;
 }
 
-.mini-list-date,
-.mini-list .badge {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
-  font-size: 0.8rem;
+.insight-foot strong {
+  color: var(--text);
+}
+
+/* Proportional stage bar */
+.stage-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-hover);
+  margin-bottom: 1rem;
+}
+
+.stage-bar-seg {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.stage-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stage-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.88rem;
+}
+
+.stage-legend-name {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-legend-count {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* This week's momentum */
+.momentum {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.momentum li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.momentum-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.momentum-label {
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 
-.date-overdue {
-  color: var(--danger);
-}
-
-.date-soon {
-  color: var(--warning);
+@media (max-width: 420px) {
+  .momentum {
+    gap: 1rem;
+  }
+  .momentum-value {
+    font-size: 1.4rem;
+  }
 }

@@ -9,8 +9,10 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { OnboardingGate } from "./components/OnboardingGate";
 import { Landing } from "./pages/Landing";
 import { Welcome } from "./pages/Welcome";
+import { Onboarding } from "./pages/Onboarding";
 import { Auth } from "./pages/Auth";
 import { Dashboard } from "./pages/Dashboard";
 import { Contacts } from "./pages/Contacts";
@@ -65,6 +67,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/signin" element={<Auth mode="signin" />} />
           <Route path="/signup" element={<Auth mode="signup" />} />
           {/* Old bookmark compatibility */}
@@ -73,7 +83,9 @@ export default function App() {
           <Route
             element={
               <ProtectedRoute>
-                <Layout />
+                <OnboardingGate>
+                  <Layout />
+                </OnboardingGate>
               </ProtectedRoute>
             }
           >

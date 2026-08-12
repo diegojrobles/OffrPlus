@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { displayName, getProfile, type Profile } from "../lib/profile";
 import { OrbitMark, Wordmark } from "../components/Logo";
 import { ThemeToggle } from "../contexts/ThemeContext";
 import "./Welcome.css";
@@ -35,7 +37,13 @@ const DESTINATIONS = [
 
 export function Welcome() {
   const { user } = useAuth();
-  const firstName = user?.email?.split("@")[0] ?? "";
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    if (user) getProfile(user.id).then(setProfile);
+  }, [user]);
+
+  const firstName = displayName(profile, user?.email);
 
   return (
     <div className="welcome">

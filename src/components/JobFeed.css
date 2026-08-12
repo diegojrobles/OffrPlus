@@ -1,0 +1,151 @@
+.job-feed {
+  margin-bottom: 2.25rem;
+}
+
+.job-feed-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.job-feed-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.job-feed-empty p {
+  margin: 0;
+  max-width: 56ch;
+}
+
+.job-feed-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.job-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1rem 1.15rem;
+  transition: border-color 0.15s;
+}
+
+.job-card:hover {
+  border-color: var(--accent);
+}
+
+.job-card-main {
+  min-width: 0;
+}
+
+.job-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.job-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.job-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+  font-size: 0.87rem;
+  color: var(--text-muted);
+}
+
+.job-meta strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Separator dots between meta items, but not before the first. */
+.job-meta > * + *::before {
+  content: "·";
+  margin-right: 0.5rem;
+  opacity: 0.5;
+}
+
+.job-salary {
+  color: var(--accent);
+}
+
+.job-card-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.job-posted {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.job-actions {
+  display: flex;
+  gap: 0.35rem;
+  /* Revealed on hover so the list reads cleanly at rest, but always
+     available on touch where there is no hover. */
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.job-card:hover .job-actions,
+.job-actions:focus-within {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .job-actions {
+    opacity: 1;
+  }
+}
+
+.btn.job-saved {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 620px) {
+  .job-card {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .job-card-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .job-actions {
+    opacity: 1;
+  }
+}
