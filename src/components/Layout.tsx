@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { ThemeToggle } from "../contexts/ThemeContext";
 import { Wordmark } from "./Logo";
@@ -121,9 +121,11 @@ export function Layout() {
   return (
     <div className="layout">
       <aside className="sidebar">
-        <div className="sidebar-brand">
+        {/* Clicking the logo goes to the public welcome page, the way a
+            marketing site's logo behaves. */}
+        <Link to="/welcome" className="sidebar-brand" title="Go to the Offr+ welcome page">
           <Wordmark size={26} />
-        </div>
+        </Link>
         <nav className="sidebar-nav">
           <NavLink to="/dashboard" className={navLinkClass}>
             <NavIcon name="grid" />

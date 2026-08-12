@@ -1,0 +1,42 @@
+.breadcrumbs {
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.breadcrumbs a {
+  color: var(--text-muted);
+  border-radius: 3px;
+}
+
+.breadcrumbs a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* The final crumb is where you are — give it a little more presence. */
+.breadcrumbs [aria-current="page"] {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.breadcrumb-sep {
+  opacity: 0.45;
+}

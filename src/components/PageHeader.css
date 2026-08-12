@@ -1,9 +1,12 @@
+.page-header-wrap {
+  margin-bottom: 1.75rem;
+}
+
 .page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.75rem;
   flex-wrap: wrap;
 }
 

@@ -9,8 +9,8 @@
   gap: 0.5rem;
 }
 
-/* Tighten the page header within pipeline */
-.pipeline-wrap .page-header {
+/* Tighten the page header within pipeline — the board needs the height. */
+.pipeline-wrap .page-header-wrap {
   margin-bottom: 0.75rem;
 }
 

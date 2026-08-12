@@ -6,6 +6,7 @@ import {
   getOutlookStatus,
   type OutlookStatus,
 } from "../lib/outlook";
+import { addBreadcrumb } from "../lib/telemetry";
 import { PageHeader } from "../components/PageHeader";
 import { MicrosoftIcon } from "../components/icons";
 import "./Settings.css";
@@ -29,6 +30,7 @@ export function Settings() {
   }, [load]);
 
   async function handleConnect() {
+    addBreadcrumb("action", "outlook.connect_clicked");
     setBusy(true);
     setError(null);
     const { error: err } = await connectOutlook();

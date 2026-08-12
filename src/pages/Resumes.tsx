@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { addBreadcrumb, logError } from "../lib/telemetry";
 import { useAuth } from "../contexts/AuthContext";
 import {
   contentTypeFor,
@@ -150,6 +151,11 @@ export function Resumes() {
       return;
     }
 
+    addBreadcrumb("action", "resume.file_selected", {
+      kind,
+      sizeKb: Math.round(file.size / 1024),
+    });
+
     setPendingFile(file);
     setPendingKind(kind);
     setRemoveExistingFile(false);
@@ -179,6 +185,7 @@ export function Resumes() {
         setExtractNote(`Extracted ${text.length.toLocaleString()} characters.`);
       }
     } catch (err) {
+      logError(err, { context: "Resumes.extractText" });
       setExtractNote(
         `Couldn't extract text (${
           err instanceof Error ? err.message : "unknown error"
@@ -241,6 +248,7 @@ export function Resumes() {
         });
 
       if (upErr) {
+        logError(upErr, { context: "Resumes.upload" });
         setError(`Upload failed: ${upErr.message}`);
         setSaving(false);
         return;

@@ -1,0 +1,140 @@
+.welcome {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.welcome-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 0;
+}
+
+.welcome-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.welcome-main {
+  flex: 1;
+}
+
+/* ---------------- hero ---------------- */
+
+.welcome-hero {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  padding: 3.5rem 0 4rem;
+  color: var(--text);
+}
+
+.welcome-hero > div {
+  min-width: 0;
+}
+
+.welcome-hero h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+.welcome-hero p {
+  margin: 1rem 0 1.75rem;
+  max-width: 44ch;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ---------------- destination cards ---------------- */
+
+.welcome-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  padding-bottom: 4rem;
+}
+
+.welcome-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  color: var(--text);
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.welcome-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.welcome-card h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.welcome-card-noun {
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.welcome-card p {
+  margin: 0;
+  flex: 1;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.welcome-card-go {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* ---------------- footer ---------------- */
+
+.welcome-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.5rem 0 2rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------------- narrow ---------------- */
+
+@media (max-width: 900px) {
+  .welcome-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.75rem;
+    padding: 2.5rem 0 3rem;
+  }
+
+  .welcome-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .welcome {
+    padding: 0 1.25rem;
+  }
+}

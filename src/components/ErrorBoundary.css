@@ -1,0 +1,56 @@
+.crash-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text);
+}
+
+.crash-screen h1 {
+  margin: 0.75rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.crash-screen p {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--text-muted);
+}
+
+.crash-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.crash-details {
+  margin-top: 1.5rem;
+  max-width: min(600px, 100%);
+  text-align: left;
+}
+
+.crash-details summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.crash-details pre {
+  margin: 0.6rem 0 0;
+  padding: 0.75rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-muted);
+}

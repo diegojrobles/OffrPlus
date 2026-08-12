@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { addBreadcrumb } from "../lib/telemetry";
 import { useAuth } from "../contexts/AuthContext";
 import { toInputDate } from "../lib/dates";
 import type { CalendarEvent, Contact, MeetingPlatform } from "../types/database";
@@ -339,6 +340,7 @@ export function Calendar() {
     // Push to Outlook only if the user has connected it. A sync failure must
     // not lose the event — it's already saved locally at this point.
     if (outlookConnected && inserted) {
+      addBreadcrumb("network", "outlook.push", { teams: formTeams });
       const result = await pushEventToOutlook(inserted.id);
       if (!result.ok) {
         setSyncNote(

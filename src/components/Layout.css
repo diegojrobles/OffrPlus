@@ -15,11 +15,18 @@
 
 .sidebar-brand {
   display: flex;
+  color: var(--text);
+  border-radius: var(--radius);
+  transition: opacity 0.15s;
   align-items: center;
   gap: 0.65rem;
   padding: 0 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
+}
+
+.sidebar-brand:hover {
+  opacity: 0.75;
 }
 
 .sidebar-footer-actions {
